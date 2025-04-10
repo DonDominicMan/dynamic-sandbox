@@ -3,40 +3,7 @@
     import * as topojson from 'topojson-client';
     import { onMount } from 'svelte';
   
-    // Sample world map TopoJSON data URL
-    const WORLD_MAP_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
-  
-    // Component dimensions
-    let width = 800;
-    let height = 500;
-  
-    let projection = d3.geoMercator();
-    let pathGenerator;
-    let geoData = null;
-  
-    // Load the TopoJSON data
-    async function loadData() {
-      try {
-        const response = await fetch(WORLD_MAP_URL);
-        const world = await response.json();
-        geoData = topojson.feature(world, world.objects.countries);
-        updateProjection();
-      } catch (error) {
-        console.error('Error loading TopoJSON data:', error);
-      }
-    }
-  
-    function updateProjection() {
-      projection
-        .fitSize([width, height], geoData)
-        .translate([width / 2, height / 2]);
-      
-      pathGenerator = d3.geoPath().projection(projection);
-    }
-  
-    onMount(() => {
-      loadData();
-    });
+    let { data } = $props();
 
     // Available projections
     const projections = {
@@ -47,18 +14,33 @@
         'Azimuthal Equal Area': d3.geoAzimuthalEqualArea()
     };
 
-    let selectedProjection = 'Mercator';
+    // svg Component dimensions
+    let width = 800;
+    let height = 500;
+    
+    let selectedProjection = $state('Mercator');
+    let projection = $state(d3.geoMercator());
+    let pathGenerator = $state();
+
+    function updateProjection() {
+      projection
+        .fitSize([width, height], data)
+        .translate([width / 2, height / 2]);
+      
+      pathGenerator = d3.geoPath().projection(projection);
+    }
 
     function changeProjection() {
         projection = projections[selectedProjection];
-        if (geoData) updateProjection();
+        if (data) updateProjection();
     }
 
-  </script>
+    onMount(() => changeProjection());
+</script>
   
 <div class="map-container">
     <div class="controls">
-        <select bind:value={selectedProjection} on:change={changeProjection}>
+        <select bind:value={selectedProjection} onchange={changeProjection}>
         {#each Object.keys(projections) as projName}
             <option value={projName}>{projName}</option>
         {/each}
@@ -66,9 +48,9 @@
     </div>
 
     <svg {width} {height}>
-        {#if geoData}
+        {#if pathGenerator}
         <g class="countries">
-            {#each geoData.features as feature}
+            {#each data.features as feature}
             <path
                 d={pathGenerator(feature)}
                 fill="#69b3a2"
@@ -80,7 +62,6 @@
         {/if}
     </svg>
 </div>
-
 
 <style>
     .map-container {
