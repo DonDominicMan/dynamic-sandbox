@@ -1,34 +1,36 @@
-<!-- Globe.svelte -->
+<!-- InteractiveGlobe.svelte -->
 <script>
     import { onMount, onDestroy } from 'svelte';
-    import { createVisualization } from '$lib/components/rotating-orthographic/2618664daf73ab84@90.js';
+    import { createInteractiveGlobe } from '$lib/components/rotating-orthographic/2618664daf73ab84@90.js';
   
     let canvas;
-    let viz;
+    let globe;
   
     onMount(() => {
-      viz = createVisualization(canvas);
-      viz.start();
+      globe = createInteractiveGlobe(canvas);
     });
   
     onDestroy(() => {
-      if (viz) viz.stop();
+      if (globe) globe.destroy();
     });
-</script>
+  </script>
   
-
 <div class="globe-container">
     <canvas 
         bind:this={canvas} 
-        width={960} 
-        height={960} 
-        style="width: 55%; height: auto;" 
+        width={960}
+        height={960}
+        style="width: 55%; height: auto; cursor: grab;"
+        class:grabbing={globe?.isDragging}
     ></canvas>
 </div>
-
-<style>
+  
+  <style>
+    .grabbing {
+      cursor: grabbing;
+    }
     .globe-container {
         display: flex;
         justify-content: center;
     }
-</style>
+  </style>
