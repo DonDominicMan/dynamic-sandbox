@@ -20,14 +20,14 @@
     const projection = d3.geoNaturalEarth1();
     let pathGenerator = $state();
     let geoData = $state();
-    let continent = $state();
+    let continent = $state("North America");
     let country = $state();
     let hover = $state();
 
     onMount(() => {
         projection
             .fitSize([width, height], data)
-            .translate([width / 2, height / 2]);
+            // .translate([width, height]);
             
             pathGenerator = d3.geoPath().projection(projection);
     });
@@ -52,7 +52,7 @@
                         <path
                             d={pathGenerator(feature)}
                             fill={geoColors[feature.properties.Continent_Code]}
-                            onpointerenter={() => feature.properties.Continent_Name !== hover ? hover = feature.properties.Continent_Name : null}
+                            onpointerenter={feature.properties.Continent_Name !== hover ? () => hover = feature.properties.Continent_Name : null}
                         />
                     {:else if hover && feature.properties.Continent_Name === hover}
                         <path
@@ -74,7 +74,7 @@
                 {/each}
             </g>
         {:else if pathGenerator}
-            <g title={hover} use:tooltip>
+            <g>
                 {#each data.features as feature}
                     {#if feature.properties.Continent_Name === continent}
                         <path
@@ -82,8 +82,9 @@
                             fill={geoColors[feature.properties.Continent_Code]}
                             stroke="white"
                             stroke-width="0.5px"
-                            stroke-linejoin="belevel"
                             onpointerenter={() => hover = feature.properties.name}
+                            title={hover} 
+                            use:tooltip
                         />
                     {/if}
                 {/each}
