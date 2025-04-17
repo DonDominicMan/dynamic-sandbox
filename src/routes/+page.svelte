@@ -20,18 +20,21 @@
     let pathGenerator = $state();
     let geoData = $state();
     let continent = $state();
+
+    function zoom() {
+        
+    }
     
     onMount(() => {
         projection
             .fitSize([width, height], data)
             .translate([width / 2, height / 2]);
-    
-        pathGenerator = d3.geoPath().projection(projection);
-
+            
+            pathGenerator = d3.geoPath().projection(projection);
     });
 </script>
   
-<div class="map-container">
+<div class="map-container" >
     <div class="controls">
         <button class="zoom-out">
             Zoom Out
@@ -39,16 +42,26 @@
         <h2 class="viewPoint">ViewPoint: {continent ? continent : 'World'}</h2>
     </div>
 
-    <svg {width} {height} class="ocean">
+    <svg {width} {height}>
         {#if pathGenerator}
         <g class="countries">
             {#each data.features as feature}
-                <path
-                    d={pathGenerator(feature)}
-                    fill={geoColors[feature.properties.Continent_Code]}
-                    onpointerup={() => console.log(feature)}
-                    onpointerenter={() => feature.properties.Continent_Name !== continent ? continent = feature.properties.Continent_Name : null}
-                />
+                {#if continent && feature.properties.Continent_Name === continent || (!continent && feature?.properties?.Continent_Name === undefined)}
+                    <path
+                        d={pathGenerator(feature)}
+                        fill={geoColors[feature.properties.Continent_Code]}
+                        stroke="white"
+                        stroke-width="0.5px"
+                        onpointerup={zoom}
+                        onpointerleave={() => continent = null}
+                    />
+                {:else}
+                    <path
+                        d={pathGenerator(feature)}
+                        fill={geoColors[feature.properties.Continent_Code]}
+                        onpointerenter={() => feature.properties.Continent_Name !== continent ? continent = feature.properties.Continent_Name : null}
+                    />
+                {/if}
             {/each}
         </g>
         {/if}
@@ -57,7 +70,6 @@
 
 <style>
     .map-container {
-        width: 850px;
         margin: 1rem;
         border: 1px solid #ccc;
         border-radius: 4px;
@@ -71,6 +83,10 @@
 
     .ocean {
         background-color: lightskyblue;
+    }
+
+    path:hover {
+        cursor: pointer;
     }
 
     .zoom-out {
