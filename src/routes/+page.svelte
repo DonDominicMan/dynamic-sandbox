@@ -2,6 +2,7 @@
     import * as d3 from 'd3';
     import * as topojson from 'topojson-client';
     import { onMount } from 'svelte';
+    import { tooltip } from '$lib/components/tooltip.js';
     const geoColors = {
         AF: '#1f78b4',
         AN: '#666666',
@@ -20,11 +21,9 @@
     let pathGenerator = $state();
     let geoData = $state();
     let continent = $state();
+    let country = $state();
+    let hover = $state();
 
-    function zoom() {
-        
-    }
-    
     onMount(() => {
         projection
             .fitSize([width, height], data)
@@ -36,34 +35,59 @@
   
 <div class="map-container" >
     <div class="controls">
-        <button class="zoom-out">
+        <h2 class="viewPoint">ViewPoint: {continent ? continent : 'World'}</h2>
+        <button class="zoom-out" onclick={() => {
+            continent = null
+            hover = null
+        }}>
             Zoom Out
         </button>
-        <h2 class="viewPoint">ViewPoint: {continent ? continent : 'World'}</h2>
     </div>
 
     <svg {width} {height}>
-        {#if pathGenerator}
-        <g class="countries">
-            {#each data.features as feature}
-                {#if continent && feature.properties.Continent_Name === continent || (!continent && feature?.properties?.Continent_Name === undefined)}
-                    <path
-                        d={pathGenerator(feature)}
-                        fill={geoColors[feature.properties.Continent_Code]}
-                        stroke="white"
-                        stroke-width="0.5px"
-                        onpointerup={zoom}
-                        onpointerleave={() => continent = null}
-                    />
-                {:else}
-                    <path
-                        d={pathGenerator(feature)}
-                        fill={geoColors[feature.properties.Continent_Code]}
-                        onpointerenter={() => feature.properties.Continent_Name !== continent ? continent = feature.properties.Continent_Name : null}
-                    />
-                {/if}
-            {/each}
-        </g>
+        {#if pathGenerator && !continent}
+            <g>
+                {#each data.features as feature}
+                    {#if !hover}
+                        <path
+                            d={pathGenerator(feature)}
+                            fill={geoColors[feature.properties.Continent_Code]}
+                            onpointerenter={() => feature.properties.Continent_Name !== hover ? hover = feature.properties.Continent_Name : null}
+                        />
+                    {:else if hover && feature.properties.Continent_Name === hover}
+                        <path
+                            d={pathGenerator(feature)}
+                            fill={geoColors[feature.properties.Continent_Code]}
+                            stroke="white"
+                            stroke-width="0.5px"
+                            onpointerup={() => continent = feature?.properties?.Continent_Name || null}
+                            onpointerleave={() => hover = null}
+                        />
+                    {:else}
+                        <path
+                            d={pathGenerator(feature)}
+                            fill={geoColors[feature.properties.Continent_Code]}
+                            onpointerenter={() => feature.properties.Continent_Name !== hover ? hover = feature.properties.Continent_Name : null}
+                            onpointerleave={() => hover = null}
+                        />
+                    {/if}
+                {/each}
+            </g>
+        {:else if pathGenerator}
+            <g title={hover} use:tooltip>
+                {#each data.features as feature}
+                    {#if feature.properties.Continent_Name === continent}
+                        <path
+                            d={pathGenerator(feature)}
+                            fill={geoColors[feature.properties.Continent_Code]}
+                            stroke="white"
+                            stroke-width="0.5px"
+                            stroke-linejoin="belevel"
+                            onpointerenter={() => hover = feature.properties.name}
+                        />
+                    {/if}
+                {/each}
+            </g>
         {/if}
     </svg>
 </div>
@@ -79,10 +103,7 @@
         padding: 1rem;
         background: #f5f5f5;
         display: flex;
-    }
-
-    .ocean {
-        background-color: lightskyblue;
+        justify-content: space-between;
     }
 
     path:hover {
@@ -102,7 +123,7 @@
     }
 
     .viewPoint {
-        margin: 0 0 0 30px;
+        margin: 10px 0 0 30px;
     }
 
 </style>
