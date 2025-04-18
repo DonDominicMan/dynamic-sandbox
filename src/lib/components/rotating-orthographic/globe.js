@@ -1,8 +1,7 @@
-// observable-viz.js (updated)
 import * as d3 from 'd3';
 import { feature } from 'topojson-client';
-import landData from './files/7b6ff41e373e01d7b5b95773e297d40625bd9ccc1936a023a066a7edd8da5eaadec4ab7a565303539e41e001f2e6730f3ee1e259fae4f19dc59e8d6b2f2ec22b.json'; // Direct import
-// observable-viz.js
+import landData from './files/custom_merged_countries_110m.json'; // Direct import
+
 export function createInteractiveGlobe(canvasElement) {
   const width = 960;
   const height = 960;
@@ -16,7 +15,7 @@ export function createInteractiveGlobe(canvasElement) {
   let isDragging = false;
   let lastMousePos = { x: 0, y: 0 };
   let autoRotate = true;
-  const autoRotationSpeed = 0.05; // Default auto-rotation
+  const autoRotationSpeed = 0.08; // Default auto-rotation
 
   // D3 setup
   const projection = d3.geoOrthographic()
@@ -24,22 +23,11 @@ export function createInteractiveGlobe(canvasElement) {
   
   const path = d3.geoPath(projection, context);
   const graticule = d3.geoGraticule10();
-  const land = feature(landData, landData.objects.land);
-
-  // Convert mouse position to rotation
-  function mouseToRotation(x, y) {
-    const dx = x - center.x;
-    const dy = y - center.y;
-    const distance = Math.min(Math.sqrt(dx*dx + dy*dy), maxRadius) / maxRadius;
-    
-    return [
-      -dx * 0.2 * distance,  // Horizontal rotation (inverted for natural feel)
-      dy * 0.1 * distance    // Vertical rotation (less sensitive)
-    ];
-  }
+  const land = feature(landData, landData.objects.countries);
 
   // Event handlers
   function handleMouseDown(event) {
+    console.log(event);
     isDragging = true;
     autoRotate = false;
     lastMousePos = getMousePos(event);
@@ -104,15 +92,15 @@ export function createInteractiveGlobe(canvasElement) {
     requestAnimationFrame(animate);
   }
 
+  
+  // Start animation
+  animate();
+  
   // Set up event listeners
   canvasElement.addEventListener('mousedown', handleMouseDown);
   canvasElement.addEventListener('mousemove', handleMouseMove);
   canvasElement.addEventListener('mouseup', handleMouseUp);
   canvasElement.addEventListener('mouseleave', handleMouseUp);
-
-  // Start animation
-  animate();
-
   return {
     destroy: () => {
       canvasElement.removeEventListener('mousedown', handleMouseDown);

@@ -1,7 +1,7 @@
 <!-- InteractiveGlobe.svelte -->
 <script>
     import { onMount, onDestroy } from 'svelte';
-    import { createInteractiveGlobe } from '$lib/components/rotating-orthographic/2618664daf73ab84@90.js';
+    import { createInteractiveGlobe } from '$lib/components/rotating-orthographic/globe.js';
   
     let canvas;
     let globe;
