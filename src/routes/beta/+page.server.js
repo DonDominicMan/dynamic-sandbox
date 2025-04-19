@@ -1,5 +1,5 @@
 import * as topojson from 'topojson-client';
-import data from '$lib/data/custom_merged_countries_110m.json';
+import data from '$lib/components/rotating-orthographic/files/custom_merged_countries_110m.json';
 
 // Sample world map TopoJSON data URL
 

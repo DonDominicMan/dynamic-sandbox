@@ -20,16 +20,14 @@
     const projection = d3.geoNaturalEarth1();
     let pathGenerator = $state();
     let geoData = $state();
-    let continent = $state("North America");
+    let continent = $state();
     let country = $state();
     let hover = $state();
 
     onMount(() => {
-        projection
-            .fitSize([width, height], data)
-            // .translate([width, height]);
-            
-            pathGenerator = d3.geoPath().projection(projection);
+        projection.fitSize([width, height], data);
+
+        pathGenerator = d3.geoPath().projection(projection);
     });
 </script>
   
