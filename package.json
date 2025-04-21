@@ -19,6 +19,7 @@
 		"vite": "^6.2.5"
 	},
 	"dependencies": {
+		"@d3ts/us-atlas": "^1.0.0",
 		"@observablehq/runtime": "^5.9.9",
 		"@svelte-plugins/tooltips": "^3.0.3",
 		"csv-parse": "^5.6.0",

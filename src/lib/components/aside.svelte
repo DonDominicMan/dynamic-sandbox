@@ -1,20 +1,27 @@
 <script>
     let { feature, isOpen, toggleSidebar} = $props();
+    let featureName = $state("United States of America");
+    $effect(() => {
+      if(feature){
+        if(feature?.properties?.type === 'state') {
+          featureName = feature?.properties?.name
+        } else {
+          featureName = feature?.properties?.name + ' County'
+        }
+      }
+    });
   </script>
   
   <div class="sidebar-container">
-    <!-- Overlay when sidebar is open (for better UX) -->
-    {#if isOpen}
-      <div class="sidebar-overlay" on:click={toggleSidebar} />
-    {/if}
-  
     <aside class:open={isOpen}>
       <button class="toggle-btn" on:click={toggleSidebar}>
         {isOpen ? '◄' : '►'}
       </button>
       
       <div class="sidebar-content">
-        <slot>{feature?.properties?.name}</slot>
+        <slot><h1>{featureName}</h1></slot>
+
+        <!-- STATE DATA -->
       </div>
     </aside>
   
@@ -28,13 +35,13 @@
         top: 0;
         left: 0;
         height: 100vh;
-        width: 50vw;
+        width: 35vw;
         background: rgba(40, 40, 60, 0.85);
         backdrop-filter: blur(8px);
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
         transform: translateX(-100%);
         transition: transform 0.3s ease-out;
-        z-index: 1000;
+        /* z-index: 1000; */
         display: flex;
       }
   
@@ -71,14 +78,5 @@
         background: rgba(60, 60, 80, 0.9);
       }
   
-      .sidebar-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.3);
-        z-index: 999;
-      }
     </style>
   </div>
