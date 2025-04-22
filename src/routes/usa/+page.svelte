@@ -7,7 +7,7 @@
     const { data } = $props();
 
     // Get map data
-    const { us, states, counties, borders } = data;
+    const { us, states, counties } = data;
     const geoPath = d3.geoPath();
 
     // Map dimensions
@@ -19,8 +19,16 @@
     let hoveredCounty = $state(null);
     let selectedState = $state(null);
     let selectedCounty = $state(null);
+    let focusState = $state(null);
+    let selectedFeatureName = $state("United States of America");
     let featureCounties = $derived(counties.filter((county) => county.properties.state === selectedState?.properties?.code));
-
+    $effect(() => {
+        selectedFeatureName = selectedCounty?.properties?.name ||
+                              selectedState?.properies?.name || 
+                              focusState?.properties?.name || 
+                              "United States of America"
+    }
+    )
     let isOpen = $state(true);
     let transform = $state(d3.zoomIdentity);
     let zoom = null;
@@ -42,17 +50,17 @@
     let strokeWidth = $derived(1 / transform.k);
     
     function handleFeatureClick(event, feature, type) {
-        console.log(feature);
         event.stopPropagation();
         if(type === 'state'){
-            selectedCounty = null;
             selectedState = feature;
         }
         if(type === 'county'){
             selectedCounty = feature;
         }
-        
-        // Zoom logic
+        zoomTo(feature);
+    }
+
+    function zoomTo(feature) {
         const [[x0, y0], [x1, y1]] = geoPath.bounds(feature);
         const scale = Math.min(8, 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height));
         const translate = [-(x0 + x1) / 2, -(y0 + y1) / 2];
@@ -62,7 +70,38 @@
             .scale(scale)
             .translate(...translate);
     }
-    
+
+    function handleKeyPress(e, feature, type) {
+        e.stopPropagation();
+        if(e.key === 'Enter'){
+            handleFeatureClick(e, feature, type);
+        }
+    }
+
+    function handleKeyDown(e, feature, type) {
+        e.stopPropagation();
+        if(e.key === ' '){
+            selectedState = feature;
+        }
+    }
+
+    function handleKeyUp(e, feature, type) {
+        e.stopPropagation();
+        if(e.key === ' '){
+            selectedState = null;
+        } else if(e.key === 'Escape'){
+            document.activeElement.blur();
+            zoomOut();
+        }
+    }
+
+    function zoomOut() {
+        focusState = null;
+        selectedState = null;
+        selectedCounty = null;
+        zoomTo(us);
+    }
+
     onMount(() => {
         const svg = d3.select('#map-container svg');
         if(zoom) svg.call(zoom);
@@ -80,9 +119,12 @@
 
 <div 
     id="map-container"
+    style:border="1px solid #ccc"
     style:display="flex"
-    style:justify-content={isOpen ? "right" : "center"}>
-    <Aside feature={selectedCounty ?? selectedState} isOpen={isOpen} toggleSidebar={toggleSidebar}/>
+    style:position="inline"
+    style:justify-content={isOpen ? "right" : "center"}
+>
+    <Aside selectedFeatureName={selectedFeatureName} isOpen={isOpen} toggleSidebar={toggleSidebar}/>   
     <svg
         viewBox="0 0 {width} {height}"
         width={width}
@@ -91,43 +133,52 @@
     >
         <g transform={transformString}>
             <!-- States -->
-            {#each states as state}
+            {#each states as state (state.id)}
                 <path
+                    role="button"
                     d={geoPath(state)}
-                    fill={hoveredState === state?.properties?.name ? '#666' : '#444'}
-                    on:click={(e) => handleFeatureClick(e, state, 'state')}
-                    on:mouseover={() => hoveredState = state?.properties?.name}
-                    on:mouseout={() => hoveredState = null}
+                    class="geoState"
+                    fill={focusState?.properties?.name === state?.properties?.name ? 'red' : hoveredState === state?.properties?.name ? '#666' : '#444'}
+                    stroke="white"
+                    stroke-width={strokeWidth}
+                    onkeypress={(e) => handleKeyPress(e, state, 'state')}
+                    onclick={(e) => handleFeatureClick(e, state, 'state')}
+                    onkeydown={(e) => handleKeyDown(e, state, 'state')}
+                    onkeyup={(e) => handleKeyUp(e, state, 'state')}
+                    onmouseover={(e) => hoveredState = state?.properties?.name}
+                    onmouseout={(e) => hoveredState = null}
+                    onfocus={(e) => focusState = state}
+                    onblur={(e) => focusState = null}
+                    tabindex={!selectedState ? state.id : -1}
                 >
                     <title>{state?.properties?.name}</title>
                 </path>
             {/each}
 
             {#if selectedState}
-                <!-- County borders -->
-                {#each featureCounties as county}
+                <!-- Counties -->
+                {#each featureCounties as county (county.id)}
                     <path
+                        role="button"
                         d={geoPath(county)}
+                        class="geoCounty"
                         fill={selectedCounty?.properties?.name === county?.properties?.name ? 'blue' : hoveredCounty?.name === county?.properties?.name ? '#666' : '#444'}
                         stroke="white"
                         stroke-width={strokeWidth}
-                        on:click={(e) => handleFeatureClick(e, county, 'county')}
-                        on:mouseover={() => hoveredCounty = county?.properties}
-                        on:mouseout={() => hoveredCounty = null}
+                        onkeypress={(e) => handleKeyPress(e, county, 'county')}
+                        onclick={(e) => handleFeatureClick(e, county, 'county')}
+                        onkeydown={(e) => handleKeyDown(e, county, 'county')}
+                        onkeyup={(e) => handleKeyUp(e, county, 'county')}
+                        onmouseover={() => hoveredCounty = county?.properties}
+                        onmouseout={() => hoveredCounty = null}
+                        onfocus={() => selectedCounty = county}
+                        onblur={() => selectedCounty = null}
+                        tabindex={county.id}
                     >
                         <title>{county?.properties?.name}</title>
                     </path>
                 {/each}
             {/if}
-            
-            <!-- State borders -->
-            <path
-                d={geoPath(borders)}
-                fill="none"
-                stroke="white"
-                stroke-width={strokeWidth}
-                stroke-linejoin="round"
-            />
         </g>
     </svg>
 </div>
@@ -136,5 +187,20 @@
     path {
         cursor: pointer;
         transition: fill 0.2s ease;
+    }
+
+    #zoomOutContainer{
+        position: relative;
+    }
+
+    #zoomOutBtn{
+        float: inline-end;
+    }
+
+    .geoState{
+        outline: none !important;
+    }
+    .geoCounty{
+        outline: none !important;
     }
 </style>

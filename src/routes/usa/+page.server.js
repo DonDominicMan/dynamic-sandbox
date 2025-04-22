@@ -6,8 +6,7 @@ export function load() {
     return {
         us,
         states: feature(us, us.objects.states).features,
-        counties: feature(us, us.objects.counties).features,
-        borders: mesh(us, us.objects.states, (a, b) => a !== b)
+        counties: feature(us, us.objects.counties).features
     };
 }
 

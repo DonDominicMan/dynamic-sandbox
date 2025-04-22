@@ -1,16 +1,6 @@
 <script>
-    let { feature, isOpen, toggleSidebar} = $props();
-    let featureName = $state("United States of America");
-    $effect(() => {
-      if(feature){
-        if(feature?.properties?.type === 'state') {
-          featureName = feature?.properties?.name
-        } else {
-          featureName = feature?.properties?.name + ' County'
-        }
-      }
-    });
-  </script>
+    let { selectedFeatureName, isOpen, toggleSidebar} = $props();
+</script>
   
   <div class="sidebar-container">
     <aside class:open={isOpen}>
@@ -19,7 +9,7 @@
       </button>
       
       <div class="sidebar-content">
-        <slot><h1>{featureName}</h1></slot>
+        <slot><h1>{selectedFeatureName}</h1></slot>
 
         <!-- STATE DATA -->
       </div>
