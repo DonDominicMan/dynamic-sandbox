@@ -4,12 +4,12 @@
   
   <div class="sidebar-container">
     <aside class:open={isOpen}>
-      <button class="toggle-btn" on:click={toggleSidebar}>
+      <button class="toggle-btn" onclick={toggleSidebar}>
         {isOpen ? '◄' : '►'}
       </button>
       
       <div class="sidebar-content">
-        <slot><h1>{selectedFeatureName}</h1></slot>
+        <h1>{selectedFeatureName}</h1>
 
         <!-- STATE DATA -->
       </div>

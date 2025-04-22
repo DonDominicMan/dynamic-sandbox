@@ -27,8 +27,7 @@
                               selectedState?.properies?.name || 
                               focusState?.properties?.name || 
                               "United States of America"
-    }
-    )
+    });
     let isOpen = $state(true);
     let transform = $state(d3.zoomIdentity);
     let zoom = null;
@@ -142,7 +141,7 @@
                     stroke="white"
                     stroke-width={strokeWidth}
                     onkeypress={(e) => handleKeyPress(e, state, 'state')}
-                    onclick={(e) => handleFeatureClick(e, state, 'state')}
+                    onmouseup={(e) => handleFeatureClick(e, state, 'state')}
                     onkeydown={(e) => handleKeyDown(e, state, 'state')}
                     onkeyup={(e) => handleKeyUp(e, state, 'state')}
                     onmouseover={(e) => hoveredState = state?.properties?.name}
@@ -188,15 +187,6 @@
         cursor: pointer;
         transition: fill 0.2s ease;
     }
-
-    #zoomOutContainer{
-        position: relative;
-    }
-
-    #zoomOutBtn{
-        float: inline-end;
-    }
-
     .geoState{
         outline: none !important;
     }
